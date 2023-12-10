@@ -7,6 +7,7 @@ import discord_function
 import util_function
 import mongo
 import re
+import asyncio
 
 
 intents = discord.Intents.all()
@@ -92,6 +93,8 @@ async def on_message(message):
                     # Process 'content' here (e.g., write to a file, parse data, etc.)
                     # For demonstration, let's just print the content
                     request = await mongo.addstockbulk(productid, newstock)
+                    if 'successfully' in request:
+                        asyncio.create_task(mongo.addadminstock(newstock, str(message.author.id)))
                     await message.channel.send(embed=await discordembed.textembed(f'{request}'))
                     
                 except Exception as e:

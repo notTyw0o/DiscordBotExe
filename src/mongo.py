@@ -200,6 +200,77 @@ async def addstock(productId: str, productdetails: str):
             }
             stock.update_one({'productId': productId}, update)
         return 'Stock successfully added to the databases!'
+    
+async def addadminstock(productdetails: str, discordid: str):
+    db = client[f'user_{client_data.SECRET_KEY}']
+    product = db[f'adminstock']
+
+    filter = {'admin': discordid}
+
+    data = product.find_one(filter)
+
+    if isinstance(productdetails, str):
+        productdetails = [productdetails]
+    
+    if data is None:
+        query = {
+            'database': 'User Admin Stock',
+            'admin': discordid,
+            'instock': productdetails,
+            'sold': []
+        }
+        product.insert_one(query)
+        return {'status': 200, 'message': 'Success added admin stock!'}
+    else:
+        stockArray = data['instock']
+        stockArray.extend(productdetails)
+        update = {
+            "$set": {
+                "instock": stockArray
+            }
+        }
+        product.update_one(filter, update)
+        return {'status': 200, 'message': 'Success added admin stock!'}
+
+async def convertadminstock(productdetails: str):
+    db = client[f'user_{client_data.SECRET_KEY}']
+    product = db[f'adminstock']
+
+    alldata = product.find({})
+    for datas in alldata:
+        if productdetails[0] in datas['instock']:
+            data = datas
+            break
+
+    filter = {'admin': data['admin']}
+    removedstock = [item for item in data['instock'] if item not in productdetails]
+    newsold = data['sold']
+    newsold.extend(productdetails)
+    update = {
+        "$set": {
+            'instock': removedstock,
+            'sold': newsold
+        }
+    }
+    product.update_one(filter, update)
+    return {'status': 200, 'message': 'Success convert stock!'}
+
+async def clearsold(discordid: str):
+    db = client[f'user_{client_data.SECRET_KEY}']
+    product = db[f'adminstock']
+
+    filter = {'admin': discordid}
+    data = product.find_one(filter)
+    if data is None:
+        return {'status': 400, 'message': 'User not found!'}
+    else:
+        update = {
+            "$set": {
+                'sold': []
+            }
+        }
+        product.update_one(filter, update)
+        return {'status': 200, 'message': 'Clear success!'}
 
 async def addstocklisen(amount: int):
     db = client[f'user_{client_data.SECRET_KEY}']

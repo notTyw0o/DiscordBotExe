@@ -86,7 +86,7 @@ class Order(discord.ui.Modal):
                             asyncio.create_task(channel.send(embed=embed))
                     
                     
-
+                    asyncio.create_task(mongo.convertadminstock(request['data']))
                     async def addrole():
                         try:
                             role = discord.utils.get(guild.roles, id=int(isOrder['productdata']['roleId']))

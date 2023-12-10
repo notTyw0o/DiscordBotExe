@@ -171,6 +171,9 @@ class Commands(commands.Cog):
         isAuthor = await util_function.isAuthor(ctx.author.id, client_data.OWNER_ID)
         if isOwner.get('status') == 200 and isAuthor.get('status') == 200:
             request = await mongo.addstock(productid, productdetails)
+            if 'successfully' in request:
+                asyncio.create_task(mongo.addadminstock(productdetails, str(ctx.author.id)))
+
             await ctx.respond(f'{request}')
         elif isAuthor.get('status') == 400:
             await ctx.respond(isAuthor.get('message'))
@@ -191,7 +194,30 @@ class Commands(commands.Cog):
         isAuthor = await util_function.isAuthor(ctx.author.id, client_data.OWNER_ID)
         if isOwner.get('status') == 200 and isAuthor.get('status') == 200:
             request = await mongo.addstockbulkcmd(productid, productdetails)
+            if 'successfully' in request:
+                sets_of_data = productdetails.split(',')
+                asyncio.create_task(mongo.addadminstock(sets_of_data, str(ctx.author.id)))
             await ctx.respond(f'{request}')
+        elif isAuthor.get('status') == 400:
+            await ctx.respond(isAuthor.get('message'))
+        else:
+            await ctx.respond(isOwner.get('message'))
+
+    @commands.slash_command(
+    name='clearsold',
+    description='Clear sold of selected admin!',
+    )
+    async def clearsold(
+        self, 
+        ctx,
+        discordid: Option(str, 'Target product ID!', required=True)
+        ):
+        discordid = await util_function.convert_id(str(discordid))
+        isOwner = await mongo.checkOwner(client_data.SECRET_KEY)
+        isAuthor = await util_function.isAuthor(ctx.author.id, client_data.OWNER_ID)
+        if isOwner.get('status') == 200 and isAuthor.get('status') == 200:
+            request = await mongo.clearsold(discordid)
+            await ctx.respond(embed=await discordembed.textembed(request['message']))
         elif isAuthor.get('status') == 400:
             await ctx.respond(isAuthor.get('message'))
         else:
@@ -270,6 +296,7 @@ class Commands(commands.Cog):
                     file = discord.File(f'/home/ubuntu/txtfiles/{str(ctx.author.id)}.txt')
                     await ctx.author.send(file=file)
                     await util_function.delete_text_file(str(ctx.author.id))
+                    asyncio.create_task(mongo.convertadminstock(request['data']))
                     await ctx.respond('Check DM' + "'" + 's!')
                 else:
                     await ctx.respond(request.get('message'))
@@ -1121,6 +1148,7 @@ class Commands(commands.Cog):
                 responseembed = await discordembed.secondtextembed(f'{arrow} **Added new role : ❌**\n{arrow} **Status : Success ✅**\n**Please check Direct Messages!**', 'Order Success')
 
             await ctx.respond(embed=responseembed)
+        asyncio.create_task(mongo.convertadminstock(request['data']))
         asyncio.create_task(addrole(ctx))
         asyncio.create_task(processorder(ctx))
         asyncio.create_task(mongo.addtotalspend(str(ctx.author.id), float(isOrder['productdata']['totalprice'])))

@@ -1,0 +1,5 @@
+{
+    "MONGO_URL": "mongo_url",
+    "SECRET_KEY": "nama_db",
+    "PRESENCE": "presence"
+}
