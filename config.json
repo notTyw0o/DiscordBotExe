@@ -1,0 +1,5 @@
+{
+    "MONGO_URL": "mongodb+srv://admin:xjEq6fHcMIbgBrxU@test.ew31t0e.mongodb.net/?retryWrites=true&w=majority",
+    "SECRET_KEY": "ASDASDASD",
+    "PRESENCE": "Wassap My Friend"
+}
