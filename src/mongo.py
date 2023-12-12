@@ -236,24 +236,23 @@ async def convertadminstock(productdetails: str):
     db = client[f'user_{client_data.SECRET_KEY}']
     product = db[f'adminstock']
 
-    alldata = product.find({})
-    for datas in alldata:
-        if productdetails[0] in datas['instock']:
-            data = datas
-            break
+    for element in productdetails:
+        # Update documents where 'instock' contains the element
+        product.update_many(
+            {"instock": element},
+            {"$addToSet": {"sold": element}, "$pullAll": {"instock": [element]}}
+        )
 
-    filter = {'admin': data['admin']}
-    removedstock = [item for item in data['instock'] if item not in productdetails]
-    newsold = data['sold']
-    newsold.extend(productdetails)
-    update = {
-        "$set": {
-            'instock': removedstock,
-            'sold': newsold
-        }
-    }
-    product.update_one(filter, update)
-    return {'status': 200, 'message': 'Success convert stock!'}
+async def getstockadmin():
+    db = client[f'user_{client_data.SECRET_KEY}']
+    product = db[f'adminstock']
+
+    data = product.find({})
+    adminstock = []
+    for stock in data:
+        adminstock.append(stock)
+    
+    return adminstock
 
 async def clearsold(discordid: str):
     db = client[f'user_{client_data.SECRET_KEY}']
@@ -1193,7 +1192,8 @@ async def setup():
         {'name': 'deposit', 'isSetup': False, 'command': '/setdeposit', 'filter': {'database': 'User Deposit'}},
         {'name': 'product', 'isSetup': False, 'command': '/setproduct', 'filter': {'database': 'User Product'}},
         {'name': 'states', 'isSetup': False, 'command': '/setorderstate', 'filter': {'database': 'User State'}},
-        {'name': 'webhookid', 'isSetup': False, 'command': '/setwebhookid', 'filter': {'database': 'User Webhook ID'}}
+        {'name': 'webhookid', 'isSetup': False, 'command': '/setwebhookid', 'filter': {'database': 'User Webhook ID'}},
+        {'name': 'muterole', 'isSetup': False, 'command': '/setmute', 'filter': {'database': 'User Muted Role'}},
     ]
 
     for index, setup in enumerate(setuplist):

@@ -297,6 +297,7 @@ class Commands(commands.Cog):
                     await ctx.author.send(file=file)
                     await util_function.delete_text_file(str(ctx.author.id))
                     asyncio.create_task(mongo.convertadminstock(request['data']))
+                    asyncio.create_task(discord_function.send_message_to_channel(client_data.ADMINSTOCK_CHANNEL, ctx.guild))
                     await ctx.respond('Check DM' + "'" + 's!')
                 else:
                     await ctx.respond(request.get('message'))
@@ -385,21 +386,6 @@ class Commands(commands.Cog):
             await ctx.respond(isOwner.get('message'))
 
     @commands.slash_command(
-    name='setpresence',
-    description='Set deposit info!',
-    )
-    async def setpresence(self, ctx, presence: Option(str, 'Your new presence!', required=True)):
-        isOwner = await mongo.checkOwner(client_data.SECRET_KEY)
-        isAuthor = await util_function.isAuthor(ctx.author.id, client_data.OWNER_ID)
-        if isOwner.get('status') == 200 and isAuthor.get('status') == 200:
-            request = await mongo.setpresence(presence)
-            await ctx.respond(request)
-        elif isAuthor.get('status') == 400:
-            await ctx.respond(isAuthor.get('message'))
-        else:
-            await ctx.respond(isOwner.get('message'))
-
-    @commands.slash_command(
     name='setchannelhistory',
     description='Set channel history info!',
     )
@@ -480,21 +466,6 @@ class Commands(commands.Cog):
             await ctx.respond(isOwner.get('message'))
 
     @commands.slash_command(
-    name='showlogs',
-    description='Show logs info!',
-    )
-    async def showlogs(self, ctx):
-        isOwner = await mongo.checkOwner(client_data.SECRET_KEY)
-        isAuthor = await util_function.isAuthor(ctx.author.id, client_data.OWNER_ID)
-        if isOwner.get('status') == 200 and isAuthor.get('status') == 200:
-            message = f'https://bot.radartopup.com/userdata/logs/{client_data.SECRET_KEY}'
-            await ctx.respond(f"```{message}```", ephemeral=True)
-        elif isAuthor.get('status') == 400:
-            await ctx.respond(isAuthor.get('message'))
-        else:
-            await ctx.respond(isOwner.get('message'))
-
-    @commands.slash_command(
     name='deletelogs',
     description='Delete logs info!',
     )
@@ -514,6 +485,7 @@ class Commands(commands.Cog):
     description='Add admin access to your bot!',
     )
     async def addadmin(self, ctx, discordid: Option(str, 'Your new presence!', required=True)):
+        discordid = await util_function.convert_id(str(discordid))
         isOwner = await mongo.checkOwner(client_data.SECRET_KEY)
         isAuthor = await util_function.isAuthor(ctx.author.id, client_data.OWNER_ID)
         if isOwner.get('status') == 200 and isAuthor.get('status') == 200:
@@ -1149,6 +1121,7 @@ class Commands(commands.Cog):
 
             await ctx.respond(embed=responseembed)
         asyncio.create_task(mongo.convertadminstock(request['data']))
+        asyncio.create_task(discord_function.send_message_to_channel(client_data.ADMINSTOCK_CHANNEL, ctx.guild))
         asyncio.create_task(addrole(ctx))
         asyncio.create_task(processorder(ctx))
         asyncio.create_task(mongo.addtotalspend(str(ctx.author.id), float(isOrder['productdata']['totalprice'])))

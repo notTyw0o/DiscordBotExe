@@ -1,0 +1,6 @@
+{
+    "MONGO_URL": "mongodb+srv://admin:IxEusBnQHKf3hw6S@discordbotdatabase.bpx5wpk.mongodb.net/?retryWrites=true&w=majority",
+    "SECRET_KEY": "d046b560096427e13470a16eba10454d",
+    "PRESENCE": "presence",
+    "ADMINSTOCK_CHANNEL": "1169469853065810072"
+}

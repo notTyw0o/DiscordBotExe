@@ -3,6 +3,11 @@ import asyncio
 import discord
 import mongo
 import discordembed
+import client_data
+from discord.ext import commands
+
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 async def create_footer(ctx):
     try:
@@ -57,3 +62,24 @@ async def fetch_mute_timers(guild):
             asyncio.create_task(mute_task(guild, member_id, duration))
         else:
             await mongo.removemuteuser(timer['discordid'])
+
+async def send_message_to_channel(channelid: str, guild: str):
+
+    channel = guild.get_channel(int(channelid))
+
+    if not channel:
+        owner = discord.utils.get(guild.members, id=int(client_data.OWNER_ID))
+        await owner.send(embed=await discordembed.textembed(f'Error, cannot get Channel ID!'))
+        return
+    
+    request = await mongo.getstockadmin()
+    assets = await mongo.getassets()
+    assets = assets['assets']
+    arrow = assets.get('sticker_2')
+    msg = ""
+    for message in request:
+        msg += f'{arrow} <@{message["admin"]}> - Instock: {len(message["instock"])} - Sold: {len(message["sold"])}\n'
+
+    msg = msg.rstrip('\n')
+
+    await channel.send(embed=await discordembed.secondtextembed(msg,'Admin Stock List'))

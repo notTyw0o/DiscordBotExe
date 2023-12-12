@@ -4,6 +4,7 @@ import discordembed
 import util_function
 import client_data
 import asyncio
+import discord_function
 
 bot = discord.Bot()
 
@@ -86,7 +87,7 @@ class Order(discord.ui.Modal):
                             asyncio.create_task(channel.send(embed=embed))
                     
                     
-                    asyncio.create_task(mongo.convertadminstock(request['data']))
+                    
                     async def addrole():
                         try:
                             role = discord.utils.get(guild.roles, id=int(isOrder['productdata']['roleId']))
@@ -102,6 +103,8 @@ class Order(discord.ui.Modal):
                         
                     asyncio.create_task(processorder())
                     asyncio.create_task(addrole())
+                    asyncio.create_task(mongo.convertadminstock(request['data']))
+                    asyncio.create_task(discord_function.send_message_to_channel(client_data.ADMINSTOCK_CHANNEL, interaction.guild))
                     
                 else:
                     await mongo.setorderstate('False')
